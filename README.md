@@ -9,3 +9,7 @@
 ## Inspiration
 
 - http://nspace.hu/soundshift/
+
+## Installation
+
+`sudo apt-get install libopenal-dev`

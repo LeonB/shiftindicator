@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/codegangsta/cli"
 )
@@ -40,6 +41,18 @@ func main() {
 				}
 
 				fmt.Println(app.getShiftpointForCarGear("williamsfw31", 4))
+			},
+		},
+		{
+			Name:  "play",
+			Usage: "Play beep sound",
+			Flags: nil,
+			Action: func(c *cli.Context) {
+				err := app.beep()
+				if err != nil {
+					log.Fatal(err)
+				}
+				time.Sleep(app.sound.Total())
 			},
 		},
 	}

@@ -16,6 +16,7 @@ import (
 const (
 	refreshRateDisconnect = time.Second * 5
 	maxFPS                = 0
+	clutchEngage          = 0.8
 )
 
 var (
@@ -240,13 +241,8 @@ func (a *App) onTick(telemetry *irsdk.TelemetryData) error {
 	rpm := telemetry.RPM
 	clutch := telemetry.Clutch
 
-	if rpm > 7000 {
-		err := errors.New("stop")
-		return err
-	}
-
 	// Don't beep when clutch is pressed
-	if clutch < 0.5 {
+	if clutch < clutchEngage {
 		return nil
 	}
 
@@ -296,6 +292,7 @@ func (a *App) onTick(telemetry *irsdk.TelemetryData) error {
 
 	// Everything checks out: beep and update data
 	log.Printf("beeping @ %v rpm for shiftpoint: %v in gear %v\n", rpm, shiftpoint, gear)
+	log.Printf("clutch: %v", clutch)
 	err = a.beep()
 	if err != nil {
 		return err

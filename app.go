@@ -9,8 +9,7 @@ import (
 	"time"
 
 	"github.com/leonb/irsdk-go"
-
-	"golang.org/x/mobile/audio"
+	"golang.org/x/mobile/exp/audio"
 )
 
 const (

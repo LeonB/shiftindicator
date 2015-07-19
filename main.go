@@ -9,6 +9,10 @@ import (
 	"github.com/codegangsta/cli"
 )
 
+const (
+	defaultCommand = "run"
+)
+
 func main() {
 	app, err := newApp()
 	if err != nil {
@@ -24,6 +28,20 @@ func main() {
 			Name:  "Leon Bogaert",
 			Email: "leonbogaert@gmail.com"},
 	}
+	c.Action = func(context *cli.Context) {
+		// Do normal stuff
+		if context.Args().Present() {
+			cli.ShowAppHelp(context)
+			return
+		}
+
+		// Execute default command
+		command := context.App.Command(defaultCommand)
+		if c != nil {
+			command.Run(context)
+		}
+	}
+
 	c.Commands = []cli.Command{
 		{
 			Name:  "shiftpoints",
@@ -34,13 +52,11 @@ func main() {
 				for _, car := range cars {
 					shiftpoints, err := app.getShiftpointsForCar(car)
 					if err != nil {
-						log.Fatal(err)
+						fmt.Println(err)
 					}
 
 					fmt.Printf("%s shiftpoints: %+v\n", car, shiftpoints)
 				}
-
-				fmt.Println(app.getShiftpointForCarGear("williamsfw31", 4))
 			},
 		},
 		{
@@ -53,6 +69,17 @@ func main() {
 					log.Fatal(err)
 				}
 				time.Sleep(app.sound.Total())
+			},
+		},
+		{
+			Name:  "run",
+			Usage: "Runs the shiftindicator",
+			Flags: nil,
+			Action: func(c *cli.Context) {
+				err := app.run()
+				if err != nil {
+					log.Fatal(err)
+				}
 			},
 		},
 	}

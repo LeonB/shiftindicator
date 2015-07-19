@@ -2,7 +2,7 @@
 
 volume: 1.0
 sound: beep01.wav
-min_time_between_beeps: 1000
+min_time_between_beeps: 3000
 shiftpoints:
   "specracer":
     - 6200

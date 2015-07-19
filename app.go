@@ -173,10 +173,13 @@ func (a *App) loadSound() error {
 }
 
 func (a *App) run() error {
-	var err error
 	prevConnStatus := false
 	curConnStatus := false
-	a.conn.Connect()
+
+	err := a.conn.Connect()
+	if err != nil {
+		return err
+	}
 
 	for {
 		curConnStatus = a.conn.IsConnected()
@@ -190,7 +193,10 @@ func (a *App) run() error {
 
 			// Wait 5 seconds before next connect attempt
 			time.Sleep(refreshRateDisconnect)
-			a.conn.Connect()
+			err = a.conn.Connect()
+			if err != nil {
+				return err
+			}
 		} else {
 			telemetry, err := a.conn.GetTelemetryDataFiltered(telemetryFields)
 			if telemetry == nil {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime/pprof"
 	"time"
 
 	"github.com/codegangsta/cli"
@@ -11,6 +12,7 @@ import (
 
 const (
 	defaultCommand = "run"
+	profileFile    = "shiftindicator.prof"
 )
 
 func main() {
@@ -28,6 +30,12 @@ func main() {
 			Name:  "Leon Bogaert",
 			Email: "leonbogaert@gmail.com"},
 	}
+	c.Flags = []cli.Flag{
+		cli.BoolFlag{
+			Name:  "profile",
+			Usage: fmt.Sprintf("Enable profiling to %v", profileFile),
+		},
+	}
 	c.Action = func(context *cli.Context) {
 		// Do normal stuff
 		if context.Args().Present() {
@@ -41,7 +49,6 @@ func main() {
 			command.Run(context)
 		}
 	}
-
 	c.Commands = []cli.Command{
 		{
 			Name:  "shiftpoints",
@@ -74,8 +81,19 @@ func main() {
 		{
 			Name:  "run",
 			Usage: "Runs the shiftindicator",
-			Flags: nil,
 			Action: func(c *cli.Context) {
+				profile := c.GlobalBool("profile")
+				if profile == true {
+					f, err := os.Create(profileFile)
+					if err != nil {
+						log.Fatal(err)
+					}
+
+					log.Println("Start profiling")
+					pprof.StartCPUProfile(f)
+					defer pprof.StopCPUProfile()
+				}
+
 				err := app.run()
 				if err != nil {
 					log.Fatal(err)
@@ -83,5 +101,6 @@ func main() {
 			},
 		},
 	}
+
 	c.Run(os.Args)
 }

@@ -15,7 +15,7 @@ import (
 
 const (
 	refreshRateDisconnect = time.Second * 5
-	maxFPS                = 30
+	maxFPS                = 0
 )
 
 var (
@@ -47,7 +47,11 @@ func newApp() (*App, error) {
 	if err != nil {
 		return nil, err
 	}
-	app.conn.SetMaxFPS(maxFPS)
+
+	// Experiment with setting max fps
+	if maxFPS > 0 {
+		app.conn.SetMaxFPS(maxFPS)
+	}
 
 	return app, nil
 }
@@ -57,6 +61,7 @@ type App struct {
 	config              *config
 	sound               *audio.Player
 	conn                *irsdk.Connection
+	session             *irsdk.SessionData
 	carID               string
 	timeLastBeep        time.Time
 	gearLastBeepUpshift int
@@ -99,7 +104,7 @@ func (a *App) getShiftpointForCarGear(carID string, gear int) (float32, error) {
 		return 0, nil
 	}
 
-	shiftpoints, err := a.config.getShiftpointsForCarID(carID)
+	shiftpoints, err := a.getShiftpointsForCar(carID)
 	if err != nil {
 		return 0, err
 	}
@@ -187,25 +192,24 @@ func (a *App) run() error {
 			time.Sleep(refreshRateDisconnect)
 			a.conn.Connect()
 		} else {
-			// GetSessionData() blocks until new data is ready
-			session, err := a.conn.GetSessionData()
-			if err != nil {
-				return err
-			}
-
 			telemetry, err := a.conn.GetTelemetryDataFiltered(telemetryFields)
-			if err != nil {
+			if telemetry == nil {
 				prevConnStatus = curConnStatus
 				continue
 			}
 
 			if prevConnStatus == false {
-				err = a.onSessionStart(session, telemetry)
+				a.session, err = a.conn.GetSessionData()
+				if err != nil {
+					return err
+				}
+
+				err = a.onSessionStart(a.session, telemetry)
 				if err != nil {
 					return err
 				}
 			} else {
-				err := a.onTick(session, telemetry)
+				err := a.onTick(telemetry)
 				if err != nil {
 					return err
 				}
@@ -231,13 +235,18 @@ func (a *App) onSessionStart(session *irsdk.SessionData, telemetry *irsdk.Teleme
 	return nil
 }
 
-func (a *App) onTick(session *irsdk.SessionData, telemetry *irsdk.TelemetryData) error {
+func (a *App) onTick(telemetry *irsdk.TelemetryData) error {
 	gear := telemetry.Gear
 	rpm := telemetry.RPM
 	clutch := telemetry.Clutch
 
+	if rpm > 7000 {
+		err := errors.New("stop")
+		return err
+	}
+
 	// Don't beep when clutch is pressed
-	if clutch == 0 {
+	if clutch < 0.5 {
 		return nil
 	}
 
@@ -251,17 +260,18 @@ func (a *App) onTick(session *irsdk.SessionData, telemetry *irsdk.TelemetryData)
 	if err != nil {
 		// Probably unknown car, fetch default shiftpoint for car from
 		// sessiondata
-		shiftpoint = session.DriverInfo.DriverCarSLShiftRPM
+		log.Println("shiftpoints for %s not defined: get shiftpoint from session data", a.carID)
+		shiftpoint = a.session.DriverInfo.DriverCarSLShiftRPM
 	}
 
 	// Reset beep if a gear has changed or rpm dropped below shiftpoint
 	if a.beepForUpshift == false {
 		// @TODO: take time into account?
 		if rpm < shiftpoint {
-			log.Println("rpm below shiftpoint: reset beepForUpshift")
+			log.Printf("rpm (%v) below shiftpoint (%v) in gear %v: reset beepForUpshift\n", rpm, shiftpoint, gear)
 			a.beepForUpshift = true
-		} else if gear != a.gearLastBeepUpshift {
-			log.Println("changed gear: reset beepForUpshift")
+		} else if gear > a.gearLastBeepUpshift {
+			log.Println("upshifted: reset beepForUpshift")
 			a.beepForUpshift = true
 		}
 	}
@@ -285,6 +295,7 @@ func (a *App) onTick(session *irsdk.SessionData, telemetry *irsdk.TelemetryData)
 	}
 
 	// Everything checks out: beep and update data
+	log.Printf("beeping @ %v rpm for shiftpoint: %v in gear %v\n", rpm, shiftpoint, gear)
 	err = a.beep()
 	if err != nil {
 		return err
@@ -298,6 +309,7 @@ func (a *App) onTick(session *irsdk.SessionData, telemetry *irsdk.TelemetryData)
 func (a *App) onSessionEnd() error {
 	log.Println("onSessionEnd")
 	// Reset struct values
+	a.session = nil
 	a.carID = ""
 	a.timeLastBeep = time.Time{}
 	return nil

@@ -178,7 +178,7 @@ func (a *App) run() error {
 
 	err := a.conn.Connect()
 	if err != nil {
-		return err
+		// Do nothing, probably the iRacing service isn't running yet
 	}
 
 	for {
@@ -195,7 +195,7 @@ func (a *App) run() error {
 			time.Sleep(refreshRateDisconnect)
 			err = a.conn.Connect()
 			if err != nil {
-				return err
+				// Do nothing, probably the iRacing service isn't running yet
 			}
 		} else {
 			telemetry, err := a.conn.GetTelemetryDataFiltered(telemetryFields)

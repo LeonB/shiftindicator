@@ -113,8 +113,8 @@ func (a *App) getShiftpointForCarGear(carID string, gear int) (float32, error) {
 		return shiftpoints[0], nil
 	}
 
-	if (gear - 1) > len(shiftpoints) {
-		return shiftpoints[len(shiftpoints)-1], ErrUnknownGear
+	if (gear - 1) >= len(shiftpoints) {
+		return 0, ErrUnknownGear
 	}
 
 	return shiftpoints[gear-1], nil
@@ -258,10 +258,14 @@ func (a *App) onTick(telemetry *irsdk.TelemetryData) error {
 
 	// Get shiftpoint for this car and gear
 	shiftpoint, err := a.getShiftpointForCarGear(a.carID, gear)
-	if err != nil {
+	if err == ErrUnknownGear {
+		log.Println("Reached top gear: don't beep")
+		a.beepForUpshift = false
+		return nil
+	} else if err != nil {
 		// Probably unknown car, fetch default shiftpoint for car from
 		// sessiondata
-		log.Println("shiftpoints for %s not defined: get shiftpoint from session data", a.carID)
+		log.Printf("shiftpoints for %s not defined: get shiftpoint from session data\n", a.carID)
 		shiftpoint = a.session.DriverInfo.DriverCarSLShiftRPM
 	}
 

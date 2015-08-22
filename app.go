@@ -259,8 +259,7 @@ func (a *App) onTick(telemetry *irsdk.TelemetryData) error {
 	// Get shiftpoint for this car and gear
 	shiftpoint, err := a.getShiftpointForCarGear(a.carID, gear)
 	if err == ErrUnknownGear {
-		log.Println("Reached top gear: don't beep")
-		a.beepForUpshift = false
+		// Reached top gear: don't beep
 		return nil
 	} else if err != nil {
 		// Probably unknown car, fetch default shiftpoint for car from

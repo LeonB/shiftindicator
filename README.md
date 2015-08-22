@@ -35,6 +35,19 @@ If you installed the program with the help of `go get` you could just run
 downloaded the binary package, just cd to the directory where you extracted the
 binary and run `./shiftindicator`.
 
+``` shell
+./shiftindicator 
+2015/08/23 00:27:37 onSessionStart
+2015/08/23 00:27:37 car: specracer
+2015/08/23 00:28:33 beeping @ 5808.3823 rpm for shiftpoint: 5800 in gear 2
+2015/08/23 00:28:33 clutch: 1
+2015/08/23 00:28:36 rpm (1359.9733) below shiftpoint (6200) in gear 1: reset beepForUpshift
+2015/08/23 00:28:39 beeping @ 6202.265 rpm for shiftpoint: 6200 in gear 1
+2015/08/23 00:28:39 clutch: 1
+2015/08/23 00:28:40 rpm (6157.883) below shiftpoint (6200) in gear 1: reset beepForUpshift
+2015/08/23 00:28:49 onSessionEnd
+```
+
 ## Customisations
 
 The configuratio file `shiftindicator.yml` is search for in the following

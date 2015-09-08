@@ -68,8 +68,8 @@ The following things can be customised:
 ## Information on shift points
 
 - http://members.iracing.com/jforum/posts/downloadAttach/2214716.page
-- http://members.iracing.com/jforum/posts/list/2022116.page
-- http://www.iracing.com/iracingnews/iracing-news/the-power-of-skip
+- [specracer](http://members.iracing.com/jforum/posts/list/2022116.page)
+- [rt2000](http://www.iracing.com/iracingnews/iracing-news/the-power-of-skip)
 - [bmwz4gt3](http://members.iracing.com/jforum/posts/list/3250088.page)
 
 ## Inspiration

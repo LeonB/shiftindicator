@@ -189,15 +189,24 @@ func (a *App) run() error {
 				if err != nil {
 					return err
 				}
+				// // Session ended: start new loop
+				// continue
 			}
 
 			// Wait 5 seconds before next connect attempt
 			time.Sleep(refreshRateDisconnect)
+			log.Println("Trying new connect")
 			err = a.conn.Connect()
 			if err != nil {
 				// Do nothing, probably the iRacing service isn't running yet
+				continue
 			}
 		} else {
+			// if a.session == nil {
+			// 	log.Println("why is a.session nil?")
+			// 	continue
+			// }
+
 			telemetry, err := a.conn.GetTelemetryDataFiltered(telemetryFields)
 			if telemetry == nil {
 				prevConnStatus = curConnStatus
@@ -209,11 +218,18 @@ func (a *App) run() error {
 				if err != nil {
 					return err
 				}
+				if (a.session == nil) {
+					// @TODO: kijken of dit wel goed is
+					log.Println("Mhhzzzz... @TODO")
+					continue
+				}
 
 				err = a.onSessionStart(a.session, telemetry)
 				if err != nil {
 					return err
 				}
+			} else if (a.session == nil) {
+				log.Println("Something strange happened... @TODO")
 			} else {
 				err := a.onTick(telemetry)
 				if err != nil {
@@ -265,6 +281,8 @@ func (a *App) onTick(telemetry *irsdk.TelemetryData) error {
 		// Probably unknown car, fetch default shiftpoint for car from
 		// sessiondata
 		log.Printf("shiftpoints for %s not defined: get shiftpoint from session data\n", a.carID)
+		log.Println(a.session.DriverInfo)
+		log.Println(a.session.DriverInfo.DriverCarSLShiftRPM)
 		shiftpoint = a.session.DriverInfo.DriverCarSLShiftRPM
 	}
 

@@ -16,7 +16,14 @@ shiftpoints:
     - 6100
     - 6300
 
+  "rufrt12r track cspec":
+    - 7616
+    - 8077
+    - 8180
+    - 8354
+    - 8422
+
   "mx5 cup": [6950]
   "mx5 roadster": [6950]
   "williamsfw31": ~
-  "bmwz4gt3": [8550]
+  "bmwz4gt3": [8750]
